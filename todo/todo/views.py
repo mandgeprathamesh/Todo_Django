@@ -13,8 +13,8 @@ def create_todo(request):
         todo = Todos.objects.create(title=title, description=description)
         print(todo)
         TodoEvent.objects.create(
-            todo=todo, event_type="Created", details=(
-                "Created Todo: {todo.title}")
+            todo=todo, event_type="Created", 
+            details=("Created Todo: {todo.title}")
         )
 
         return JsonResponse(
@@ -45,7 +45,8 @@ def update_todo(request, todo_id):
         todo.save()
 
         TodoEvent.objects.create(
-            todo=todo, event_type="Updated", details=("Updated Todo: {todo.title}")
+            todo=todo, event_type="Updated", 
+            details=("Updated Todo: {todo.title}")
         )
 
         return JsonResponse(
@@ -72,8 +73,9 @@ def toggle_todo(request, todo_id):
 
         event_type = "Checked" if todo.completed else "Unchecked"
         TodoEvent.objects.create(
-            todo=todo, event_type=event_type, details=(
-                "Todo: {todo.title}"))
+            todo=todo, event_type=event_type, 
+            details=("Todo: {todo.title}")
+        )
 
         return JsonResponse(
             {
@@ -100,7 +102,8 @@ def delete_todo(request, todo_id):
         )
         todo.delete()
 
-        return JsonResponse({"message": "Todo deleted successfully"}, status=200)
+        return JsonResponse({"message": "Todo deleted successfully"}, 
+                            status=200)
 
 
 def todo_history(request, todo_id):
