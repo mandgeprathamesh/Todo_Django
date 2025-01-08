@@ -19,7 +19,7 @@ class TodoEvent(models.Model):
         ("Deleted", "Deleted"),
     ]
     todo = models.ForeignKey(
-        "app.Model", verbose_name=("todoname"), on_delete=models.CASCADE
+        to=Todos, verbose_name=("todoname"), on_delete=models.CASCADE
     )
     event_type = models.CharField(max_length=10, choices=EVENT_TYPES)
     timestamp = models.DateTimeField(default=timezone.now)
