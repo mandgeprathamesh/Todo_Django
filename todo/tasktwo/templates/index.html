@@ -3,52 +3,181 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Todo List</title>
+    <title>Todo Application</title>
+    <script src="https://unpkg.com/htmx.org@1.9.2"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f7fc;
+        }
+
+        .container {
+            background: #fff;
+            padding: 20px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            border-radius: 8px;
+            overflow-y: auto;
+        }
+
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            margin-bottom: 20px;
+        }
+
+        form input,
+        form textarea {
+            padding: 10px;
+            font-size: 14px;
+            margin-bottom: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        form button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        form button:hover {
+            background-color: #45a049;
+        }
+
+        .todo-card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin-bottom: 20px;
+            transition: box-shadow 0.3s ease-in-out;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .todo-card:hover {
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .todo-card h3 {
+            margin: 0;
+            font-size: 20px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .todo-card p {
+            font-size: 14px;
+            color: #666;
+            margin-top: 10px;
+        }
+
+        .todo-card .todo-actions {
+            margin-top: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .todo-card .todo-actions button {
+            background-color: #f44336;
+            color: white;
+            padding: 6px 12px;
+            font-size: 12px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-left: 5px;
+        }
+
+        .todo-card .todo-actions button:nth-child(2) {
+            background-color: #8e24aa;
+        }
+
+        .todo-card .todo-actions button:nth-child(2):hover {
+            background-color: #7b1fa2;
+        }
+
+        .todo-card .todo-actions button:hover {
+            background-color: #e53935;
+        }
+
+        .todo-card .checkmark {
+            cursor: pointer;
+            font-size: 20px;
+            color: #999;
+            transition: color 0.3s ease;
+        }
+
+        .todo-card .checkmark.completed {
+            color: #4CAF50;
+        }
+
+        .completed {
+            text-decoration: line-through;
+            color: #999;
+        }
+
+        /* Adjusting the layout */
+        .todo-card .todo-actions button:last-child {
+            margin-right: 0;
+        }
+
+        .todo-card .todo-actions button {
+            flex-grow: 1;
+        }
+    </style>
 </head>
 <body>
-    <h1>Todo List</h1>
+    <div class="container">
+        <h1>Todo List</h1>
 
-    <form hx-post="{% url 'create_todo' %}" hx-target="#todo-list" hx-swap="beforeend">
-        <input type="text" name="title" placeholder="Title" required>
-        <textarea name="description" placeholder="Description"></textarea>
-        <button type="submit">Add Todo</button>
-    </form>
+        
+        <form hx-post="/todos/" hx-target="#todo-list" hx-swap="beforeend">
+            <input type="text" name="title" placeholder="Enter todo title" required>
+            <textarea name="description" placeholder="Enter todo description" rows="3" required></textarea>
+            <button type="submit">Add Todo</button>
+        </form>
 
-    <div id="todo-list">
-        {% for todo in todos %}
-            <div id="todo-{{ todo.id }}">
-                <h3>{{ todo.title }}</h3>
-                <p>{{ todo.description }}</p>
-
-                
-                <button hx-patch="{% url 'toggle_todo' todo.id %}" hx-target="#todo-{{ todo.id }}">
-                    {% if todo.completed %}
-                        Uncheck
-                    {% else %}
-                        Check
-                    {% endif %}
-                </button>
-
-                
-                <button hx-get="{% url 'update_todo' todo.id %}" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML">
-                    Edit
-                </button>
-
-                
-                <button hx-delete="{% url 'delete_todo' todo.id %}" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML">
-                    Delete
-                </button>
-
-                
-                <button hx-get="{% url 'todo_history' todo.id %}" hx-target="#todo-{{ todo.id }}-history" hx-swap="outerHTML">
-                    History
-                </button>
-
-                <div id="todo-{{ todo.id }}-history"></div>
-            </div>
-        {% endfor %}
+        
+        <div id="todo-list">
+            {% for todo in todos %}
+                <div class="todo-card" id="todo-{{ todo.id }}">
+                    <h3 {% if todo.completed %}class="completed"{% endif %}>{{ todo.title }}</h3>
+                    <p {% if todo.completed %}class="completed"{% endif %}>{{ todo.description }}</p>
+                    <div class="todo-actions">
+                        <span class="checkmark" 
+                            hx-patch="/todos/{{ todo.id }}/toggle/" 
+                            hx-target="#todo-{{ todo.id }}" 
+                            hx-swap="outerHTML" 
+                            {% if todo.completed %}class="completed"{% endif %}>
+                            {% if todo.completed %}✔{% else %}⭘{% endif %}
+                        </span>
+                        <button hx-put="/todos/{{ todo.id }}/" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML">Update</button>
+                        <button hx-delete="/todos/{{ todo.id }}/delete/" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML">Delete</button>
+                        <button hx-get="/todos/{{ todo.id }}/history/" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML">History</button>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
     </div>
-
-    <script src="https://unpkg.com/htmx.org@1.7.0"></script>
 </body>
 </html>

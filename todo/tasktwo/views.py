@@ -7,11 +7,7 @@ from django.views.decorators.csrf import csrf_exempt
 def todo_list(request):
     if request.method == "GET":
         todos = Todos.objects.all()
-        print(todos)
-        return render(
-            request,
-            "index.html",
-        )
+        return render(request, "index.html", {"todos": todos})
 
 
 @csrf_exempt
@@ -26,9 +22,9 @@ def create_todo(request):
 
         todo = Todos.objects.create(title=title, description=description)
         # print("created the todo is:-", todo)
+        print(todo.title)
         TodoEvent.objects.create(
-            todo=todo, event_type="Created", 
-            details=("Created Todo: {todo.title}")
+            todo=todo, event_type="Created", details=("Created Todo: {todo.title}")
         )
 
         return JsonResponse(
@@ -44,7 +40,9 @@ def create_todo(request):
         )
 
 
+@csrf_exempt
 def update_todo(request, todo_id):
+    print(todo_id)
     if request.method == "PUT":
         try:
             todo = Todos.objects.get(id=todo_id)
@@ -59,8 +57,7 @@ def update_todo(request, todo_id):
         todo.save()
 
         TodoEvent.objects.create(
-            todo=todo, event_type="Updated", 
-            details=("Updated Todo: {todo.title}")
+            todo=todo, event_type="Updated", details=("Updated Todo: {todo.title}")
         )
 
         return JsonResponse(
@@ -75,6 +72,7 @@ def update_todo(request, todo_id):
         )
 
 
+@csrf_exempt
 def toggle_todo(request, todo_id):
     if request.method == "PATCH":
         try:
@@ -102,6 +100,7 @@ def toggle_todo(request, todo_id):
         )
 
 
+@csrf_exempt
 def delete_todo(request, todo_id):
     if request.method == "DELETE":
         try:
@@ -110,15 +109,14 @@ def delete_todo(request, todo_id):
             return JsonResponse({"error": "Todo not found"}, status=404)
 
         TodoEvent.objects.create(
-            todo=todo, event_type="Deleted", 
-            details=("Deleted Todo: {todo.title}")
+            todo=todo, event_type="Deleted", details=("Deleted Todo: {todo.title}")
         )
         todo.delete()
 
-        return JsonResponse({"message": "Todo deleted successfully"}, 
-                            status=200)
+        return JsonResponse({"message": "Todo deleted successfully"}, status=200)
 
 
+@csrf_exempt
 def todo_history(request, todo_id):
     if request.method == "GET":
         try:
