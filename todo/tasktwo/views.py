@@ -1,17 +1,31 @@
 from django.http import JsonResponse
+from django.shortcuts import render
 from .models import TodoEvent, Todos
+from django.views.decorators.csrf import csrf_exempt
 
 
+def todo_list(request):
+    if request.method == "GET":
+        todos = Todos.objects.all()
+        print(todos)
+        return render(
+            request,
+            "index.html",
+        )
+
+
+@csrf_exempt
 def create_todo(request):
     if request.method == "POST":
         title = request.POST.get("title")
         description = request.POST.get("description", "")
+        # print(title, description)
 
         if not title:
             return JsonResponse({"error": "Title is required"}, status=400)
 
         todo = Todos.objects.create(title=title, description=description)
-        print(todo)
+        # print("created the todo is:-", todo)
         TodoEvent.objects.create(
             todo=todo, event_type="Created", 
             details=("Created Todo: {todo.title}")
@@ -23,8 +37,8 @@ def create_todo(request):
                 "title": todo.title,
                 "description": todo.description,
                 "completed": todo.completed,
-                "created_at": todo.created_at,
-                "updated_at": todo.updated_at,
+                "created_at": todo.createdat,
+                "updated_at": todo.updatedat,
             },
             status=201,
         )
@@ -55,8 +69,8 @@ def update_todo(request, todo_id):
                 "title": todo.title,
                 "description": todo.description,
                 "completed": todo.completed,
-                "created_at": todo.created_at,
-                "updated_at": todo.updated_at,
+                "created_at": todo.createdat,
+                "updated_at": todo.updatedat,
             }
         )
 
@@ -73,8 +87,7 @@ def toggle_todo(request, todo_id):
 
         event_type = "Checked" if todo.completed else "Unchecked"
         TodoEvent.objects.create(
-            todo=todo, event_type=event_type, 
-            details=("Todo: {todo.title}")
+            todo=todo, event_type=event_type, details=("Todo: {todo.title}")
         )
 
         return JsonResponse(
@@ -83,8 +96,8 @@ def toggle_todo(request, todo_id):
                 "title": todo.title,
                 "description": todo.description,
                 "completed": todo.completed,
-                "created_at": todo.created_at,
-                "updated_at": todo.updated_at,
+                "created_at": todo.createdat,
+                "updated_at": todo.updatedat,
             }
         )
 

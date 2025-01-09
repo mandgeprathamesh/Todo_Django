@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List</title>
+</head>
+<body>
+    <h1>Todo List</h1>
+
+    <form hx-post="{% url 'create_todo' %}" hx-target="#todo-list" hx-swap="beforeend">
+        <input type="text" name="title" placeholder="Title" required>
+        <textarea name="description" placeholder="Description"></textarea>
+        <button type="submit">Add Todo</button>
+    </form>
+
+    <div id="todo-list">
+        {% for todo in todos %}
+            <div id="todo-{{ todo.id }}">
+                <h3>{{ todo.title }}</h3>
+                <p>{{ todo.description }}</p>
+
+                
+                <button hx-patch="{% url 'toggle_todo' todo.id %}" hx-target="#todo-{{ todo.id }}">
+                    {% if todo.completed %}
+                        Uncheck
+                    {% else %}
+                        Check
+                    {% endif %}
+                </button>
+
+                
+                <button hx-get="{% url 'update_todo' todo.id %}" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML">
+                    Edit
+                </button>
+
+                
+                <button hx-delete="{% url 'delete_todo' todo.id %}" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML">
+                    Delete
+                </button>
+
+                
+                <button hx-get="{% url 'todo_history' todo.id %}" hx-target="#todo-{{ todo.id }}-history" hx-swap="outerHTML">
+                    History
+                </button>
+
+                <div id="todo-{{ todo.id }}-history"></div>
+            </div>
+        {% endfor %}
+    </div>
+
+    <script src="https://unpkg.com/htmx.org@1.7.0"></script>
+</body>
+</html>

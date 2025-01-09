@@ -5,7 +5,7 @@ from django.utils import timezone
 class Todos(models.Model):
     title = models.CharField()
     description = models.TextField(blank=True, null=True)
-    completed = models.BooleanField()
+    completed = models.BooleanField(default=False)
     createdat = models.DateTimeField(default=timezone.now)
     updatedat = models.DateTimeField(default=timezone.now)
 
@@ -23,4 +23,4 @@ class TodoEvent(models.Model):
     )
     event_type = models.CharField(max_length=10, choices=EVENT_TYPES)
     timestamp = models.DateTimeField(default=timezone.now)
-    details = models.TextField(null=True, blank=True)
+    details = models.TextField(blank=True, null=True)
