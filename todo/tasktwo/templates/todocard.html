@@ -1,0 +1,16 @@
+<div class="todo-card" id="todo-{{ todo.id }}">
+    <h3 {% if todo.completed %}class="completed" {% endif %}>{{ todo.title }}</h3>
+    <p {% if todo.completed %}class="completed" {% endif %}>{{ todo.description }}</p>
+    <div class="todo-actions">
+        <span class="checkmark" hx-patch="/todos/{{ todo.id }}/toggle/" hx-target="#todo-{{ todo.id }}"
+            hx-swap="outerHTML">
+            {% if todo.completed %}✔{% else %}⭘{% endif %}
+        </span>
+        <button hx-get="/todos/{{ todo.id }}/edit/" hx-target="#modal-body" hx-swap="innerHTML"
+            _="on click add .active to #modal">Update</button>
+        <button hx-delete="/todos/{{ todo.id }}/delete/" hx-target="#todo-{{ todo.id }}"
+            hx-swap="outerHTML">Delete</button>
+        <button hx-get="/todos/{{ todo.id }}/history/" hx-target="#todo-{{ todo.id }}"
+            hx-swap="outerHTML">History</button>
+    </div>
+</div>

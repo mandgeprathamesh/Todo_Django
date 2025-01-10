@@ -1,0 +1,15 @@
+<div class="history-container">
+    <button onclick="window.location.href='/'"
+        style="padding: 10px 15px; background-color: #4CAF50; color: white; border: none; border-radius: 6px; cursor: pointer; margin-bottom: 20px;">
+        Go Back
+    </button>
+    {% for event in events %}
+    <div class="history-card">
+        <h4>{{ event.event_type }}</h4>
+        <p>{{ event.details }}</p>
+        <small>{{ event.timestamp }}</small>
+    </div>
+    {% empty %}
+    <p>No history available for this todo.</p>
+    {% endfor %}
+</div>

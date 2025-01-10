@@ -21,11 +21,39 @@ from . import views
 
 urlpatterns = [
     path("admin/", admin.site.urls),
-    path("", views.todo_list, name="todo_list"),
-    path("todos/", views.create_todo, name="create_todo"),
-    path("todos/<int:todo_id>/", views.update_todo, name="update_todo"),
-    path("todos/<int:todo_id>/toggle/", views.toggle_todo, name="toggle_todo"),
-    path("todos/<int:todo_id>/delete/", views.delete_todo, name="delete_todo"),
-    path("todos/<int:todo_id>/history/", views.todo_history, 
-         name="todo_history"),
+    path(
+        "",
+        views.todo_list,
+        name="todo_list",
+    ),
+    path(
+        "todos/",
+        views.create_todo,
+        name="create_todo",
+    ),
+    path(
+        "todos/<int:todo_id>/edit/",
+        views.edit_todo_form,
+        name="todo_form",
+    ),
+    path(
+        "todos/<int:todo_id>/",
+        views.update_todo,
+        name="update_todo",
+    ),
+    path(
+        "todos/<int:todo_id>/toggle/",
+        views.toggle_todo,
+        name="toggle_todo",
+    ),
+    path(
+        "todos/<int:todo_id>/delete/",
+        views.delete_todo,
+        name="delete_todo",
+    ),
+    path(
+        "todos/<int:todo_id>/history/",
+        views.todo_history,
+        name="todo_history",
+    ),
 ]
