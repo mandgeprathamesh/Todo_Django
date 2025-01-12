@@ -6,8 +6,8 @@ class Todos(models.Model):
     title = models.CharField()
     description = models.TextField(blank=True, null=True)
     completed = models.BooleanField(default=False)
-    createdat = models.DateTimeField(default=timezone.now)
-    updatedat = models.DateTimeField(default=timezone.now)
+    createdat = models.DateTimeField(auto_now_add=True)
+    updatedat = models.DateTimeField(auto_now=True)
 
 
 class TodoEvent(models.Model):

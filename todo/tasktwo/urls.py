@@ -15,45 +15,85 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 
+# from django.urls import path
+# from . import views
+
+# urlpatterns = [
+#     path(
+#         "",
+#         views.todo_list,
+#         name="todo_list",
+#     ),
+#     path(
+#         "todos/",
+#         views.create_todo,
+#         name="create_todo",
+#     ),
+#     path(
+#         "todos/<int:todo_id>/edit/",
+#         views.edit_todo_form,
+#         name="todo_form",
+#     ),
+#     path(
+#         "todos/<int:todo_id>/",
+#         views.update_todo,
+#         name="update_todo",
+#     ),
+#     path(
+#         "todos/<int:todo_id>/toggle/",
+#         views.toggle_todo,
+#         name="toggle_todo",
+#     ),
+#     path(
+#         "todos/<int:todo_id>/delete/",
+#         views.delete_todo,
+#         name="delete_todo",
+#     ),
+#     path(
+#         "todos/<int:todo_id>/history/",
+#         views.todo_history,
+#         name="todo_history",
+#     ),
+# ]
+
+
 from django.urls import path
-from django.contrib import admin
-from . import views
+from .views import (
+    TodoListView,
+    CreateTodoView,
+    UpdateTodoView,
+    EditTodoFormView,
+    ToggleTodoView,
+    DeleteTodoView,
+    TodoHistoryView,
+)
 
 urlpatterns = [
-    path("admin/", admin.site.urls),
-    path(
-        "",
-        views.todo_list,
-        name="todo_list",
-    ),
-    path(
-        "todos/",
-        views.create_todo,
-        name="create_todo",
-    ),
-    path(
-        "todos/<int:todo_id>/edit/",
-        views.edit_todo_form,
-        name="todo_form",
-    ),
+    path("", TodoListView.as_view(), name="todo_list"),
+    path("todos/", CreateTodoView.as_view(), name="create_todo"),
     path(
         "todos/<int:todo_id>/",
-        views.update_todo,
+        UpdateTodoView.as_view(),
         name="update_todo",
     ),
     path(
+        "todos/<int:todo_id>/edit/",
+        EditTodoFormView.as_view(),
+        name="edit_todo_form",
+    ),
+    path(
         "todos/<int:todo_id>/toggle/",
-        views.toggle_todo,
+        ToggleTodoView.as_view(),
         name="toggle_todo",
     ),
     path(
         "todos/<int:todo_id>/delete/",
-        views.delete_todo,
+        DeleteTodoView.as_view(),
         name="delete_todo",
     ),
     path(
         "todos/<int:todo_id>/history/",
-        views.todo_history,
+        TodoHistoryView.as_view(),
         name="todo_history",
     ),
 ]

@@ -6,8 +6,7 @@
             hx-swap="outerHTML">
             {% if todo.completed %}✔{% else %}⭘{% endif %}
         </span>
-        <button hx-get="/todos/{{ todo.id }}/edit/" hx-target="#modal-body" hx-swap="innerHTML"
-            _="on click add .active to #modal">Update</button>
+        <button hx-get="/todos/{{ todo.id }}/edit/" hx-target="#todo-{{ todo.id }}" hx-swap="outerHTML">Update</button>
         <button hx-delete="/todos/{{ todo.id }}/delete/" hx-target="#todo-{{ todo.id }}"
             hx-swap="outerHTML">Delete</button>
         <button hx-get="/todos/{{ todo.id }}/history/" hx-target="#todo-{{ todo.id }}"
