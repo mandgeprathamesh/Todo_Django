@@ -1,0 +1,14 @@
+<div class="todo-card" id="todo-{{ tasks.id }}">
+    <h3 {% if todo.completed %}class="completed" {% endif %}>{{ tasks.name }}</h3>
+    <p {% if todo.completed %}class="completed" {% endif %}>{{ tasks.description }}</p>
+    <div class="todo-actions">
+        <span class="checkmark" hx-patch="/tasks/{{ tasks.id }}/" hx-target="#todo-{{ tasks.id }}" hx-swap="outerHTML">
+            {% if tasks.completed %}✔{% else %}⭘{% endif %}
+        </span>
+        <button hx-get="/tasks/edit/{{ tasks.id }}/" hx-target="#todo-{{ tasks.id }}"
+            hx-swap="outerHTML">Update</button>
+        <button hx-delete="/tasks/{{ tasks.id }}/" hx-target="#todo-{{ tasks.id }}" hx-swap="outerHTML">Delete</button>
+        <button hx-get="/tasks/{{ tasks.id }}/history/" hx-target="#todo-{{ tasks.id }}"
+            hx-swap="outerHTML">History</button>
+    </div>
+</div>

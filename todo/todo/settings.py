@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "tasktwo",
+    "tasks",
 ]
 
 MIDDLEWARE = [
@@ -83,7 +83,7 @@ DATABASES = {
         "USER": "postgres",
         "PASSWORD": "postgres",
         "HOST": "localhost",
-        "PORT": "5432",
+        "PORT": "5433",
     }
 }
 

@@ -1,0 +1,6 @@
+<form id="update-form-{{ tasks.id }}" hx-put="/tasks/{{ tasks.id }}/" hx-target="#update-form-{{ tasks.id }}"
+    hx-swap="outerHTML">
+    <input type="text" name="name" value="{{ tasks.name }}" required>
+    <textarea name="description" rows="3" required>{{ tasks.description }}</textarea>
+    <button type="submit">Submit</button>
+</form>
