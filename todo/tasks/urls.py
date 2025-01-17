@@ -33,20 +33,25 @@ client -> jS validation -> API call -> view -> serializer
 
 urlpatterns = [
     path(
-        "", views.TaskListCreateView.as_view(), name="task_list_create"
+        "",
+        views.LandingPageView.as_view(),
+        name="landing_page",
+    ),
+    path(
+        "tasks/", views.TaskListCreateView.as_view(), name="task_list_create"
     ),  # GET and POST
     path(
-        "<int:task_id>/",
+        "tasks/<int:task_id>/",
         views.TaskDetailView.as_view(),
         name="task_detail",
     ),  # GET, PATCH, DELETE, PUT
     path(
-        "<int:task_id>/history/",
+        "tasks/<int:task_id>/history/",
         views.TaskHistoryView.as_view(),
         name="task_history",
     ),  # GET history
     path(
-        "edit/<int:task_id>/",
+        "tasks/edit/<int:task_id>/",
         views.TodoFormView.as_view(),
         name="task_edit",
     ),

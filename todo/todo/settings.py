@@ -40,6 +40,8 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "tasks",
+    "drf_yasg",
+    "rest_framework",
 ]
 
 MIDDLEWARE = [
@@ -84,6 +86,14 @@ DATABASES = {
         "PASSWORD": "postgres",
         "HOST": "localhost",
         "PORT": "5433",
+    }
+}
+
+SWAGGER_SETTINGS = {
+    'SECURITY_DEFINITIONS': {
+        'Basic': {
+            'type': 'basic'
+        }
     }
 }
 

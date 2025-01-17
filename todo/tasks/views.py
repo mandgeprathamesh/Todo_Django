@@ -27,7 +27,7 @@ class TaskListCreateView(APIView):
 
     def post(self, request: Request) -> Response:
         # breakpoint()
-        print(request.data)
+        # print(request.data)
         serializer = TaskSerializer(data=request.data)
         print(serializer.is_valid())
         if serializer.is_valid():
@@ -237,3 +237,8 @@ class TodoFormView(APIView):
             return JsonResponse(
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
+
+
+class LandingPageView(APIView):
+    def get(self, request: Request) -> Response:
+        return TemplateResponse(request, "landingpage.html")
