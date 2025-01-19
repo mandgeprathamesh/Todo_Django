@@ -5,16 +5,30 @@ from rest_framework import status
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404
 from django.template.response import TemplateResponse
+from django.core.paginator import Paginator
 from tasks.serializers import TaskSerializer
 from tasks.models import Task, TaskHistory
+from django.core.paginator import PageNotAnInteger, EmptyPage
 from django.db import transaction
+from drf_yasg.utils import swagger_auto_schema
+from drf_yasg import openapi
+from django.urls import reverse
+from core.constants import HISTORY_PAGE_SIZE, TASK_HISTORY_PAGE_SIZE
 
 
 class TaskListCreateView(APIView):
+    @swagger_auto_schema(
+        operation_description="Get a list of tasks",
+        responses={200: TaskSerializer(many=True), 404: "Not Found"},
+    )
     def get(self, request: Request) -> Response:
         try:
             tasks = Task.objects.filter(is_active=True).order_by("created_at")
-            print("task are", tasks)
+            # Pagination logic
+            # paginator = Paginator(tasks, 3)  # Show 3 tasks per page
+            # page_number = request.GET.get("page")
+            # page_obj = paginator.get_page(page_number)
+
             return TemplateResponse(request, "index.html", {"tasks": tasks})
         except Task.DoesNotExist:
             return JsonResponse(
@@ -25,11 +39,17 @@ class TaskListCreateView(APIView):
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @swagger_auto_schema(
+        operation_description="Create a new task",
+        request_body=TaskSerializer,
+        responses={
+            201: "Created",
+            400: "Bad Request",
+            500: "Internal Server Error",
+        },
+    )
     def post(self, request: Request) -> Response:
-        # breakpoint()
-        # print(request.data)
         serializer = TaskSerializer(data=request.data)
-        print(serializer.is_valid())
         if serializer.is_valid():
             task_data = serializer.validated_data
             try:
@@ -63,6 +83,10 @@ class TaskListCreateView(APIView):
 
 
 class TaskDetailView(APIView):
+    @swagger_auto_schema(
+        operation_description="Get details of a task",
+        responses={200: TaskSerializer, 404: "Task not found"},
+    )
     def get(self, request: Request, task_id) -> Response:
         try:
             task = Task.objects.get(id=task_id, is_active=True)
@@ -96,6 +120,15 @@ class TaskDetailView(APIView):
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR,
             )
 
+    @swagger_auto_schema(
+        operation_description="Update a task",
+        request_body=TaskSerializer,
+        responses={
+            200: TaskSerializer,
+            404: "Task not found",
+            400: "Bad Request",
+        },
+    )
     def put(self, request: Request, task_id) -> Response:
         try:
             task = Task.objects.get(id=task_id, is_active=True)
@@ -146,6 +179,10 @@ class TaskDetailView(APIView):
             {"errors": serializer.errors}, status=status.HTTP_400_BAD_REQUEST
         )
 
+    @swagger_auto_schema(
+        operation_description="Delete a task",
+        responses={200: "Task deleted", 404: "Task not found"},
+    )
     def delete(self, request, task_id) -> Response:
         try:
             task = Task.objects.get(id=task_id, is_active=True)
@@ -171,6 +208,10 @@ class TaskDetailView(APIView):
                 {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
 
+    @swagger_auto_schema(
+        operation_description="Toggle task completion status",
+        responses={200: "Task updated", 404: "Task not found"},
+    )
     def patch(self, request, task_id) -> Response:
         try:
             task = Task.objects.get(id=task_id, is_active=True)
@@ -196,38 +237,78 @@ class TaskDetailView(APIView):
 
 
 class TaskHistoryView(APIView):
+    @swagger_auto_schema(
+        operation_description="Get the history of a task",
+        manual_parameters=[
+            openapi.Parameter(
+                "task_id",
+                openapi.IN_PATH,
+                description="ID of the task",
+                type=openapi.TYPE_INTEGER,
+            )
+        ],
+        responses={
+            200: "Task history retrieved successfully",
+            404: "Task not found",
+        },
+    )
     def get(self, request, task_id) -> Response:
         try:
+            # Fetch the task
             task = Task.objects.get(id=task_id, is_active=True)
         except Task.DoesNotExist:
             return JsonResponse(
                 {"error": "Task not found"}, status=status.HTTP_404_NOT_FOUND
             )
+
+        # Fetch task history and order by `created_at`
+        events = TaskHistory.objects.filter(task=task).order_by("-created_at")
+
+        # Pagination logic
+        paginator = Paginator(events, TASK_HISTORY_PAGE_SIZE)
+        page_number = request.GET.get(
+            "page"
+        )  # Get the current page number from the request
+
         try:
-            with transaction.atomic():
-                events = TaskHistory.objects.filter(task=task).order_by(
-                    "-created_at",
-                )
-                events_data = [
-                    {
-                        "event_type": event.event_type,
-                        "timestamp": event.created_at,
-                        "details": event.metadata,
-                    }
-                    for event in events
-                ]
-            return TemplateResponse(
-                request,
-                "historycard.html",
-                {"events": events_data},
-            )
-        except Exception as e:
-            return JsonResponse(
-                {"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR
-            )
+            page_obj = paginator.get_page(page_number)  # Get the page object
+        except PageNotAnInteger:
+            page_obj = paginator.page(
+                1
+            )  # Return the first page if `page` is not an integer
+        except EmptyPage:
+            page_obj = paginator.page(
+                paginator.num_pages
+            )  # Return the last page if `page` is out of range
+
+        # Prepare data for the template
+        events_data = [
+            {
+                "event_type": event.event_type,
+                "timestamp": event.created_at,
+                "details": event.metadata,
+            }
+            for event in page_obj
+        ]
+        return TemplateResponse(
+            request,
+            "historycard.html",
+            {
+                "history_url": reverse(
+                    "task_history",
+                    kwargs={"task_id": task_id},
+                ),
+                "events_data": events_data,
+                "page_obj": page_obj,
+            },
+        )
 
 
 class TodoFormView(APIView):
+    @swagger_auto_schema(
+        operation_description="Get the form to edit a task",
+        responses={200: "Edit form retrieved", 404: "Task not found"},
+    )
     def get(self, request, task_id=None) -> Response:
         try:
             with transaction.atomic():
@@ -240,5 +321,45 @@ class TodoFormView(APIView):
 
 
 class LandingPageView(APIView):
+    @swagger_auto_schema(
+        operation_description="Get the landing page",
+        responses={200: "Landing page rendered"},
+    )
     def get(self, request: Request) -> Response:
         return TemplateResponse(request, "landingpage.html")
+
+
+class GetEntireHistory(APIView):
+    @swagger_auto_schema(
+        operation_description="Get the entire task history with pagination",
+        responses={
+            200: "Task history retrieved successfully",
+            404: "No task history found",
+        },
+    )
+    def get(self, request: Request) -> Response:
+        try:
+            events = TaskHistory.objects.all().order_by("-created_at")
+            print(events.values())
+            # Pagination logic
+            paginator = Paginator(events, HISTORY_PAGE_SIZE)
+            page_number = request.GET.get("page")
+            page_obj = paginator.get_page(page_number)
+
+            # Return HTML response with task history wrapped in a div
+            return TemplateResponse(
+                request,
+                "taskhistory.html",
+                {
+                    "history_url": reverse(
+                        "entire_history",
+                    ),
+                    "events_data": page_obj,
+                    "page_obj": page_obj,
+                },
+            )
+        except TaskHistory.DoesNotExist:
+            return JsonResponse(
+                {"error": "No task history found."},
+                status=404,
+            )

@@ -37,7 +37,7 @@ class TaskHistory(models.Model):
         on_delete=models.CASCADE,
     )
     event_type = models.CharField(max_length=10, choices=TASK_EVENT_TYPE)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now=True)
     metadata = models.TextField(blank=True, null=True)
 
     @classmethod

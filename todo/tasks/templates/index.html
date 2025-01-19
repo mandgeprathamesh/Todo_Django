@@ -9,22 +9,34 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
+            margin: 0 10px;
+            /* Adds horizontal margins of 10px */
+            padding: 10px;
+            /* Adds padding around the body */
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
             background-color: #f4f7fc;
+            overflow: hidden;
         }
 
         .container {
             background: #fff;
-            padding: 20px;
+            padding: 40px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            width: 350px;
+            width: 750px;
+            justify-content: space-between;
+            gap: 20px;
             border-radius: 8px;
             overflow-y: auto;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-container {
+            flex: 1;
+            min-width: 300px;
         }
 
         h1 {
@@ -133,11 +145,15 @@
         }
 
         .history-container {
+            flex: 1;
+            min-width: 300px;
             background-color: #fff;
             padding: 20px;
             box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
             border-radius: 8px;
             margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
         }
 
         .history-container h2 {
@@ -253,25 +269,55 @@
             text-align: center;
             margin-top: 20px;
         }
+
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f7fc;
+        }
+
+        #full-history-list {
+            max-height: 400px;
+            overflow-y: auto;
+            padding-bottom: 50px;
+            /* Ensure there's space for the button */
+        }
+
+        #load-more-trigger {
+            padding: 15px;
+            text-align: center;
+            color: #4CAF50;
+            cursor: pointer;
+        }
     </style>
 </head>
 
 <body>
     <div class="container">
-        <h1>Todo List</h1>
+        <div class="form-container">
+            <h1>Todo List</h1>
+            <form id="todo-form" hx-post="{% url 'task_list_create' %}" hx-target="#todo-list" hx-swap="beforeend"
+                hx-on="htmx:afterRequest: this.reset()">
+                <input type="text" id="title" name="name" placeholder="Enter todo title" required>
+                <textarea id="description" name="description" placeholder="Enter todo description" rows="3"
+                    required></textarea>
+                <button type="submit">Add Todo</button>
+            </form>
 
-        <form id="todo-form" hx-post="{% url 'task_list_create' %}" hx-target="#todo-list" hx-swap="beforeend"
-            hx-on="htmx:afterRequest: this.reset()">
-            <input type="text" id="title" name="name" placeholder="Enter todo title" required>
-            <textarea id="description" name="description" placeholder="Enter todo description" rows="3"
-                required></textarea>
-            <button type="submit">Add Todo</button>
-        </form>
-
-        <p id="error-message" style="color: red; display: none; text-align: center;"></p>
-
-        <div id="loading-indicator">
-            <span>Loading...</span>
+            <p id="error-message" style="color: red; display: none; text-align: center;"></p>
+            <div id="loading-indicator">
+                <span>Loading...</span>
+            </div>
+            <button id="show-history-btn" hx-get="{% url 'entire_history' %}" hx-target="#full-history-list"
+                hx-trigger="click" hx-swap="innerHTML"
+                style="margin: 10px auto; display: block; padding: 10px 15px; border-radius: 6px; background-color: #2196F3; color: white; border: none; cursor: pointer;">
+                View Full History
+            </button>
         </div>
 
         <div id="todo-list-container">
@@ -304,33 +350,81 @@
         </div>
     </div>
 
+    <div id="history-popup"
+        style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: white; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2); padding: 20px; z-index: 1000; width: 80%; max-height: 80%; overflow-y: auto; border-radius: 10px;">
+        <button id="close-history-btn"
+            style="float: right; background-color: #f44336; color: white; border: none; border-radius: 4px; padding: 5px 10px; cursor: pointer;">
+            Close
+        </button>
+        <h2 style="text-align: center;">Full Event History</h2>
+        <div id="full-history-list">
+            <!-- Dynamically loaded event history will appear here -->
+        </div>
+    </div>
+    <div id="overlay"
+        style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0, 0, 0, 0.5); z-index: 999;">
+    </div>
+
     <script>
+        // Existing form submission logic
         document.getElementById('todo-form').addEventListener('submit', function (event) {
             const title = document.getElementById('title').value.trim();
             const description = document.getElementById('description').value.trim();
             const errorMessage = document.getElementById('error-message');
             const loadingIndicator = document.getElementById('loading-indicator');
 
-            // Check for empty fields
             if (!title || !description) {
-                event.preventDefault(); // Prevent form submission
+                event.preventDefault();
                 errorMessage.textContent = 'Both fields are required!';
                 errorMessage.style.display = 'block';
             } else {
-                // Show the loading indicator
                 loadingIndicator.style.display = 'block';
-
-                // Hide the error message if the fields are valid
                 errorMessage.style.display = 'none';
             }
         });
 
-        // Use htmx event listener to hide the loading indicator after the request is completed
-        document.body.addEventListener('htmx:afterRequest', function (event) {
-            // Hide the loading indicator after the request
+        document.body.addEventListener('htmx:afterRequest', function () {
             const loadingIndicator = document.getElementById('loading-indicator');
             loadingIndicator.style.display = 'none';
         });
+
+        document.getElementById('close-history-btn').addEventListener('click', function () {
+            const popup = document.getElementById('history-popup');
+            const overlay = document.getElementById('overlay');
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+        });
+
+        document.getElementById('overlay').addEventListener('click', function () {
+            const popup = document.getElementById('history-popup');
+            const overlay = document.getElementById('overlay');
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+        });
+
+        // Show Full History Popup
+        document.getElementById('show-history-btn').addEventListener('click', function () {
+            const popup = document.getElementById('history-popup');
+            const overlay = document.getElementById('overlay');
+            popup.style.display = 'block';
+            overlay.style.display = 'block';
+        });
+
+        // Close Full History Popup
+        document.getElementById('close-history-btn').addEventListener('click', function () {
+            const popup = document.getElementById('history-popup');
+            const overlay = document.getElementById('overlay');
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+        });
+
+        document.getElementById('overlay').addEventListener('click', function () {
+            const popup = document.getElementById('history-popup');
+            const overlay = document.getElementById('overlay');
+            popup.style.display = 'none';
+            overlay.style.display = 'none';
+        });
+
     </script>
 </body>
 

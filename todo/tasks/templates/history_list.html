@@ -1,0 +1,12 @@
+{% for event in events_data %}
+<li style="margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; padding: 10px; background-color: #f9f9f9;">
+    <h4 style="margin: 0 0 5px;">{{ event.event_type }}</h4>
+    <p style="margin: 0 0 5px;">{{ event.details }}</p>
+    {% if event.metadata %}
+    <pre style="margin: 0 0 5px; background-color: #f4f4f4; padding: 10px; border-radius: 6px; overflow-x: auto;">
+        {{ event.metadata }}
+    </pre>
+    {% endif %}
+    <small style="color: gray;">{{ event.timestamp }}</small>
+</li>
+{% endfor %}

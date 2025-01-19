@@ -1,0 +1,25 @@
+<ul style="list-style-type: none; padding: 0; margin: 0;">
+    {% for event in events_data %}
+    <li
+        style="margin-bottom: 15px; border: 1px solid #ddd; border-radius: 6px; padding: 10px; background-color: #f9f9f9;">
+        <h4 style="margin: 0 0 5px;">{{ event.event_type }}</h4>
+        <p style="margin: 0 0 5px;">{{ event.details }}</p>
+        {% if event.metadata %}
+        <pre style="margin: 0 0 5px; background-color: #f4f4f4; padding: 10px; border-radius: 6px; overflow-x: auto;">
+            {{ event.metadata }}
+        </pre>
+        {% endif %}
+        <small style="color: gray;">
+            Last Event at: {{ event.created_at }}
+        </small>
+    </li>
+    {% endfor %}
+</ul>
+<!-- Loading more items trigger -->
+{% if page_obj.has_next %}
+<div id="load-more-trigger" hx-get="{{ history_url }}?page={{ page_obj.next_page_number }}" hx-trigger="intersect once"
+    hx-target="#full-history-list " hx-swap="beforeend"
+    style="text-align: center; padding: 15px; color: #4CAF50; cursor: pointer;">
+    Loading more...
+</div>
+{% endif %}

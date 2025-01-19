@@ -55,4 +55,9 @@ urlpatterns = [
         views.TodoFormView.as_view(),
         name="task_edit",
     ),
+    path(
+        "tasks/history/",
+        views.GetEntireHistory.as_view(),
+        name="entire_history",
+    ),
 ]
